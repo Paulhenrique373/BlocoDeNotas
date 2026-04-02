@@ -2,6 +2,7 @@ package com.example.blocodenotas
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -13,6 +14,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: NoteAdapter
     private lateinit var noteList: MutableList<Note>
     private lateinit var db: DatabaseHelper
+    private lateinit var btnDelete: Button // 🔥 NOVO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,6 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recyclerView)
         val fabAdd = findViewById<FloatingActionButton>(R.id.fabAdd)
+        btnDelete = findViewById(R.id.btnDelete) // 🔥 IMPORTANTE
 
         db = DatabaseHelper(this)
 
@@ -27,6 +30,19 @@ class MainActivity : AppCompatActivity() {
 
         fabAdd.setOnClickListener {
             startActivity(Intent(this, AddEditNoteActivity::class.java))
+        }
+
+        // 🔥 BOTÃO EXCLUIR VÁRIOS
+        btnDelete.setOnClickListener {
+            val selected = adapter.selectedNotes
+
+            for (note in selected) {
+                db.deleteNote(note.id)
+                noteList.remove(note)
+            }
+
+            adapter.clearSelection()
+            adapter.notifyDataSetChanged()
         }
     }
 
