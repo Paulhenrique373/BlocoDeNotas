@@ -14,6 +14,7 @@ class AddEditNoteActivity : AppCompatActivity() {
     private lateinit var db: DatabaseHelper
 
     private var noteId = 0
+    private var jaSalvou = false // 🔥 evita duplicar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,25 +35,42 @@ class AddEditNoteActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
-            val title = edtTitle.text.toString().trim()
-            val description = edtDescription.text.toString().trim()
+            salvarNota(true) // salva manual
+        }
+    }
 
-            if (title.isEmpty() || description.isEmpty()) {
-                Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+    // 🔥 SALVA AUTOMATICAMENTE AO SAIR (botão voltar)
+    override fun onPause() {
+        super.onPause()
+        salvarNota(false)
+    }
 
-            if (noteId == 0) {
-                val success = db.insertNote(Note(titulo = title, descricao = description))
+    // 🔥 FUNÇÃO CENTRAL DE SALVAR
+    private fun salvarNota(mostrarToast: Boolean) {
 
-                if (success) {
+        if (jaSalvou) return // ✅ CORREÇÃO PRINCIPAL (evita duplicar)
+
+        val title = edtTitle.text.toString().trim()
+        val description = edtDescription.text.toString().trim()
+
+        if (title.isEmpty() && description.isEmpty()) return
+
+        if (noteId == 0) {
+            val success = db.insertNote(Note(titulo = title, descricao = description))
+
+            if (success) {
+                jaSalvou = true // marca como salvo
+                if (mostrarToast) {
                     Toast.makeText(this, "Anotação salva", Toast.LENGTH_SHORT).show()
                     finish()
                 }
-            } else {
-                val success = db.updateNote(Note(noteId, title, description))
+            }
+        } else {
+            val success = db.updateNote(Note(noteId, title, description))
 
-                if (success) {
+            if (success) {
+                jaSalvou = true // 🔥 importante aqui também
+                if (mostrarToast) {
                     Toast.makeText(this, "Anotação atualizada", Toast.LENGTH_SHORT).show()
                     finish()
                 }
