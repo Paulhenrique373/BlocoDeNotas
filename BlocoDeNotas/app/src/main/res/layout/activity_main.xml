@@ -3,13 +3,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="12dp">
+    android:background="#F5F7FA">
+
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/minhas_notas"
+            android:textColor="#1F1F1F"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/subtitulo_notas"
+            android:textColor="#7A7A7A"
+            android:textSize="15sp" />
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/fabAdd" />
+        android:layout_below="@id/header"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="90dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
@@ -17,9 +45,13 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:contentDescription="Adicionar"
+        android:layout_margin="24dp"
+        android:contentDescription="@string/adicionar_nota"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="#4CAF50" />
+        android:tint="#FFFFFF"
+        app:backgroundTint="#4CAF50"
+        app:borderWidth="0dp"
+        app:elevation="10dp"
+        app:fabSize="normal" />
 
 </RelativeLayout>
