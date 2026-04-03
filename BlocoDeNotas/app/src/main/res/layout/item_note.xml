@@ -11,32 +11,50 @@
     app:strokeWidth="0dp"
     app:cardBackgroundColor="#FFE7C2">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="18dp">
 
-        <TextView
-            android:id="@+id/txtTitle"
+        <!-- 📌 BOTÃO FIXAR -->
+        <ImageView
+            android:id="@+id/btnPin"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentEnd="true"
+            android:src="@android:drawable/star_big_off"
+            app:tint="#666666"
+            android:contentDescription="Fixar nota" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Título"
-            android:textColor="#222222"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:maxLines="2" />
+            android:orientation="vertical"
+            android:layout_toStartOf="@id/btnPin"
+            android:paddingEnd="8dp">
 
-        <TextView
-            android:id="@+id/txtDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Descrição"
-            android:textColor="#555555"
-            android:textSize="14sp"
-            android:maxLines="5" />
+            <TextView
+                android:id="@+id/txtTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Título"
+                android:textColor="#222222"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:maxLines="2" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/txtDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Descrição"
+                android:textColor="#555555"
+                android:textSize="14sp"
+                android:maxLines="5" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
 
 </com.google.android.material.card.MaterialCardView>

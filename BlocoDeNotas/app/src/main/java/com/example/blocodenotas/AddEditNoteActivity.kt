@@ -1,6 +1,7 @@
 package com.example.blocodenotas
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -14,7 +15,14 @@ class AddEditNoteActivity : AppCompatActivity() {
     private lateinit var db: DatabaseHelper
 
     private var noteId = 0
-    private var jaSalvou = false // 🔥 evita duplicar
+    private var jaSalvou = false
+
+    // 🔥 guardar valores antigos
+    private var tituloAntigo = ""
+    private var descricaoAntiga = ""
+
+    // 🎨 cor da nota
+    private var corSelecionada = "#FFE7C2"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,48 +36,99 @@ class AddEditNoteActivity : AppCompatActivity() {
 
         noteId = intent.getIntExtra("id", 0)
 
+        // 🔥 EDITANDO NOTA
         if (noteId != 0) {
-            edtTitle.setText(intent.getStringExtra("title"))
-            edtDescription.setText(intent.getStringExtra("description"))
+            tituloAntigo = intent.getStringExtra("title") ?: ""
+            descricaoAntiga = intent.getStringExtra("description") ?: ""
+            corSelecionada = intent.getStringExtra("cor") ?: "#FFE7C2" // 🔥 pega cor antiga
+
+            edtTitle.setText(tituloAntigo)
+            edtDescription.setText(descricaoAntiga)
             btnSave.text = "Atualizar"
         }
 
+        // 🎨 CORES
+        configurarCores()
+
         btnSave.setOnClickListener {
-            salvarNota(true) // salva manual
+            salvarNota(true)
         }
     }
 
-    // 🔥 SALVA AUTOMATICAMENTE AO SAIR (botão voltar)
     override fun onPause() {
         super.onPause()
         salvarNota(false)
     }
 
-    // 🔥 FUNÇÃO CENTRAL DE SALVAR
+    // 🎨 FUNÇÃO PRA ORGANIZAR CORES
+    private fun configurarCores() {
+
+        findViewById<View>(R.id.colorYellow).setOnClickListener {
+            corSelecionada = "#FFE7C2"
+        }
+
+        findViewById<View>(R.id.colorBlue).setOnClickListener {
+            corSelecionada = "#D9F4FF"
+        }
+
+        findViewById<View>(R.id.colorPurple).setOnClickListener {
+            corSelecionada = "#F6D8FF"
+        }
+
+        findViewById<View>(R.id.colorGreen).setOnClickListener {
+            corSelecionada = "#DFFFD8"
+        }
+
+        findViewById<View>(R.id.colorOrange).setOnClickListener {
+            corSelecionada = "#FFF3C7"
+        }
+    }
+
+    // 💾 SALVAR NOTA
     private fun salvarNota(mostrarToast: Boolean) {
 
-        if (jaSalvou) return // ✅ CORREÇÃO PRINCIPAL (evita duplicar)
+        if (jaSalvou) return
 
         val title = edtTitle.text.toString().trim()
         val description = edtDescription.text.toString().trim()
 
+        // ❌ não salva vazio
         if (title.isEmpty() && description.isEmpty()) return
 
+        // ❌ não salva se não mudou
+        if (title == tituloAntigo && description == descricaoAntiga) return
+
         if (noteId == 0) {
-            val success = db.insertNote(Note(titulo = title, descricao = description))
+            // 🔥 NOVA NOTA
+            val success = db.insertNote(
+                Note(
+                    titulo = title,
+                    descricao = description,
+                    cor = corSelecionada
+                )
+            )
 
             if (success) {
-                jaSalvou = true // marca como salvo
+                jaSalvou = true
                 if (mostrarToast) {
                     Toast.makeText(this, "Anotação salva", Toast.LENGTH_SHORT).show()
                     finish()
                 }
             }
+
         } else {
-            val success = db.updateNote(Note(noteId, title, description))
+            // 🔥 ATUALIZAR NOTA
+            val success = db.updateNote(
+                Note(
+                    id = noteId,
+                    titulo = title,
+                    descricao = description,
+                    cor = corSelecionada
+                )
+            )
 
             if (success) {
-                jaSalvou = true // 🔥 importante aqui também
+                jaSalvou = true
                 if (mostrarToast) {
                     Toast.makeText(this, "Anotação atualizada", Toast.LENGTH_SHORT).show()
                     finish()

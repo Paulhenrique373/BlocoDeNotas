@@ -6,23 +6,26 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 
 class NoteAdapter(
     private val context: Context,
-    val notes: MutableList<Note> // 👈 tirei o private pra acessar na Activity
+    val notes: MutableList<Note>
 ) : RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
 
-    // 🔥 LISTA DE SELECIONADOS
     val selectedNotes = mutableListOf<Note>()
     var isSelectionMode = false
+
+    private val db = DatabaseHelper(context) // 🔥 acesso ao banco
 
     inner class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val title: TextView = itemView.findViewById(R.id.txtTitle)
         val description: TextView = itemView.findViewById(R.id.txtDescription)
         val cardView: MaterialCardView = itemView.findViewById(R.id.cardNote)
+        val btnPin: ImageView = itemView.findViewById(R.id.btnPin) // 🔥 botão 📌
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
@@ -55,6 +58,24 @@ class NoteAdapter(
             holder.itemView.alpha = 1.0f
         }
 
+        // 🔥 ESTADO DO PIN (ícone muda)
+        if (note.fixada == 1) {
+            holder.btnPin.setImageResource(android.R.drawable.star_big_on)
+        } else {
+            holder.btnPin.setImageResource(android.R.drawable.star_big_off)
+        }
+
+        // 🔥 CLICK NO BOTÃO 📌
+        holder.btnPin.setOnClickListener {
+            note.fixada = if (note.fixada == 1) 0 else 1
+            db.updateNote(note)
+
+            // 🔥 REORDENA LISTA
+            notes.sortWith(compareByDescending<Note> { it.fixada }.thenByDescending { it.id })
+
+            notifyDataSetChanged()
+        }
+
         // 🔥 CLIQUE NORMAL
         holder.itemView.setOnClickListener {
             if (isSelectionMode) {
@@ -68,7 +89,7 @@ class NoteAdapter(
             }
         }
 
-        // 🔥 SEGURAR PARA ATIVAR SELEÇÃO
+        // 🔥 SEGURAR PARA SELEÇÃO
         holder.itemView.setOnLongClickListener {
             isSelectionMode = true
             toggleSelection(note)
@@ -76,7 +97,6 @@ class NoteAdapter(
         }
     }
 
-    // 🔥 FUNÇÃO DE SELEÇÃO
     fun toggleSelection(note: Note) {
         if (selectedNotes.contains(note)) {
             selectedNotes.remove(note)
@@ -86,7 +106,6 @@ class NoteAdapter(
         notifyDataSetChanged()
     }
 
-    // 🔥 LIMPAR SELEÇÃO
     fun clearSelection() {
         selectedNotes.clear()
         isSelectionMode = false
