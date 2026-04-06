@@ -10,14 +10,16 @@ class DatabaseHelper(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "notes.db"
-        private const val DATABASE_VERSION = 3 // 🔥 aumentei de novo
+        private const val DATABASE_VERSION = 4 // 🔥 aumentou
 
         private const val TABLE_NOTES = "notes"
         private const val COLUMN_ID = "id"
         private const val COLUMN_TITLE = "title"
         private const val COLUMN_DESCRIPTION = "description"
         private const val COLUMN_FIXADA = "fixada"
-        private const val COLUMN_COR = "cor" // 🔥 NOVO
+        private const val COLUMN_FAVORITO = "favorito" // ⭐ NOVO
+        private const val COLUMN_DATA = "data" // 📅 NOVO
+        private const val COLUMN_COR = "cor"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -27,6 +29,8 @@ class DatabaseHelper(context: Context) :
                 $COLUMN_TITLE TEXT,
                 $COLUMN_DESCRIPTION TEXT,
                 $COLUMN_FIXADA INTEGER DEFAULT 0,
+                $COLUMN_FAVORITO INTEGER DEFAULT 0,
+                $COLUMN_DATA TEXT,
                 $COLUMN_COR TEXT DEFAULT '#FFE7C2'
             )
         """.trimIndent()
@@ -46,7 +50,9 @@ class DatabaseHelper(context: Context) :
         values.put(COLUMN_TITLE, note.titulo)
         values.put(COLUMN_DESCRIPTION, note.descricao)
         values.put(COLUMN_FIXADA, note.fixada)
-        values.put(COLUMN_COR, note.cor) // 🔥 salvar cor
+        values.put(COLUMN_FAVORITO, note.favorito) // ⭐
+        values.put(COLUMN_DATA, note.data) // 📅
+        values.put(COLUMN_COR, note.cor)
 
         val result = db.insert(TABLE_NOTES, null, values)
         db.close()
@@ -66,11 +72,13 @@ class DatabaseHelper(context: Context) :
         if (cursor.moveToFirst()) {
             do {
                 val note = Note(
-                    id = cursor.getInt(0),
-                    titulo = cursor.getString(1),
-                    descricao = cursor.getString(2),
-                    fixada = cursor.getInt(3),
-                    cor = cursor.getString(4) // 🔥 pegar cor
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    titulo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)),
+                    descricao = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
+                    fixada = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_FIXADA)),
+                    favorito = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_FAVORITO)), // ⭐
+                    data = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATA)), // 📅
+                    cor = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_COR))
                 )
                 list.add(note)
             } while (cursor.moveToNext())
@@ -89,7 +97,9 @@ class DatabaseHelper(context: Context) :
         values.put(COLUMN_TITLE, note.titulo)
         values.put(COLUMN_DESCRIPTION, note.descricao)
         values.put(COLUMN_FIXADA, note.fixada)
-        values.put(COLUMN_COR, note.cor) // 🔥 atualizar cor
+        values.put(COLUMN_FAVORITO, note.favorito) // ⭐
+        values.put(COLUMN_DATA, note.data) // 📅
+        values.put(COLUMN_COR, note.cor)
 
         val result = db.update(
             TABLE_NOTES,

@@ -1,11 +1,18 @@
 package com.example.blocodenotas
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AddEditNoteActivity : AppCompatActivity() {
 
@@ -15,14 +22,14 @@ class AddEditNoteActivity : AppCompatActivity() {
     private lateinit var db: DatabaseHelper
 
     private var noteId = 0
-    private var jaSalvou = false
 
-    // 🔥 guardar valores antigos
     private var tituloAntigo = ""
     private var descricaoAntiga = ""
 
-    // 🎨 cor da nota
     private var corSelecionada = "#FFE7C2"
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var runnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,31 +43,68 @@ class AddEditNoteActivity : AppCompatActivity() {
 
         noteId = intent.getIntExtra("id", 0)
 
-        // 🔥 EDITANDO NOTA
         if (noteId != 0) {
             tituloAntigo = intent.getStringExtra("title") ?: ""
             descricaoAntiga = intent.getStringExtra("description") ?: ""
-            corSelecionada = intent.getStringExtra("cor") ?: "#FFE7C2" // 🔥 pega cor antiga
+            corSelecionada = intent.getStringExtra("cor") ?: "#FFE7C2"
 
             edtTitle.setText(tituloAntigo)
             edtDescription.setText(descricaoAntiga)
-            btnSave.text = "Atualizar"
+
+            btnSave.visibility = View.GONE
+        } else {
+            btnSave.visibility = View.VISIBLE
         }
 
-        // 🎨 CORES
         configurarCores()
+        configurarAutoSave()
 
         btnSave.setOnClickListener {
-            salvarNota(true)
+
+            val title = edtTitle.text.toString().trim()
+            val description = edtDescription.text.toString().trim()
+
+            if (title.isEmpty() && description.isEmpty()) {
+                Toast.makeText(this, "Preencha o título ou a anotação para salvar", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            salvarNota()
+            Toast.makeText(this, "Anotação salva", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 
     override fun onPause() {
         super.onPause()
-        salvarNota(false)
+        salvarNota()
     }
 
-    // 🎨 FUNÇÃO PRA ORGANIZAR CORES
+    private fun configurarAutoSave() {
+
+        val textWatcher = object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                salvarComDelay()
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+
+        edtTitle.addTextChangedListener(textWatcher)
+        edtDescription.addTextChangedListener(textWatcher)
+    }
+
+    private fun salvarComDelay() {
+        runnable?.let { handler.removeCallbacks(it) }
+
+        runnable = Runnable {
+            salvarNota()
+        }
+
+        handler.postDelayed(runnable!!, 1000)
+    }
+
     private fun configurarCores() {
 
         findViewById<View>(R.id.colorYellow).setOnClickListener {
@@ -84,56 +128,40 @@ class AddEditNoteActivity : AppCompatActivity() {
         }
     }
 
-    // 💾 SALVAR NOTA
-    private fun salvarNota(mostrarToast: Boolean) {
-
-        if (jaSalvou) return
+    // 💾 SALVAR NOTA COM DATA
+    private fun salvarNota() {
 
         val title = edtTitle.text.toString().trim()
         val description = edtDescription.text.toString().trim()
 
-        // ❌ não salva vazio
         if (title.isEmpty() && description.isEmpty()) return
-
-        // ❌ não salva se não mudou
         if (title == tituloAntigo && description == descricaoAntiga) return
 
+        // 📅 DATA ATUAL
+        val dataAtual = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+
         if (noteId == 0) {
-            // 🔥 NOVA NOTA
-            val success = db.insertNote(
+            db.insertNote(
                 Note(
                     titulo = title,
                     descricao = description,
+                    data = dataAtual,
                     cor = corSelecionada
                 )
             )
-
-            if (success) {
-                jaSalvou = true
-                if (mostrarToast) {
-                    Toast.makeText(this, "Anotação salva", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            }
-
         } else {
-            // 🔥 ATUALIZAR NOTA
-            val success = db.updateNote(
+            db.updateNote(
                 Note(
                     id = noteId,
                     titulo = title,
                     descricao = description,
+                    data = dataAtual,
                     cor = corSelecionada
                 )
             )
-
-            if (success) {
-                jaSalvou = true
-                if (mostrarToast) {
-                    Toast.makeText(this, "Anotação atualizada", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            }
         }
+
+        tituloAntigo = title
+        descricaoAntiga = description
     }
 }

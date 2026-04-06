@@ -16,22 +16,22 @@
         android:layout_height="wrap_content"
         android:padding="18dp">
 
-        <!-- 📌 BOTÃO FIXAR -->
+        <!-- 📌 FIXAR (ÚNICO BOTÃO) -->
         <ImageView
             android:id="@+id/btnPin"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:src="@android:drawable/star_big_off"
-            app:tint="#666666"
             android:contentDescription="Fixar nota" />
 
+        <!-- 📝 CONTEÚDO -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_toStartOf="@id/btnPin"
-            android:paddingEnd="8dp">
+            android:paddingEnd="10dp">
 
             <TextView
                 android:id="@+id/txtTitle"
@@ -52,6 +52,16 @@
                 android:textColor="#555555"
                 android:textSize="14sp"
                 android:maxLines="5" />
+
+            <!-- 📅 DATA -->
+            <TextView
+                android:id="@+id/txtData"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="01/01/2026 12:00"
+                android:textSize="12sp"
+                android:textColor="#888888" />
 
         </LinearLayout>
 

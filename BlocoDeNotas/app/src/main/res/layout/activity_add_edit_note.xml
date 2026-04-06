@@ -93,7 +93,9 @@
                     android:textColor="#1F1F1F"
                     android:textColorHint="#999999"
                     android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
 
                 <View
                     android:layout_width="match_parent"
@@ -112,7 +114,9 @@
                     android:inputType="textMultiLine"
                     android:textColor="#444444"
                     android:textColorHint="#AAAAAA"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:minLines="5"
+                    android:maxLines="10" />
 
             </LinearLayout>
 

@@ -5,12 +5,24 @@
     android:layout_height="match_parent"
     android:background="#F4F5F7">
 
+    <!-- 🔎 TOOLBAR -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:title="Minhas Notas"
+        android:titleTextColor="#202124"
+        android:background="#FFFFFF"
+        android:elevation="4dp" />
+
+    <!-- 🔥 HEADER -->
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="24dp"
+        android:layout_below="@id/toolbar">
 
         <TextView
             android:layout_width="wrap_content"
@@ -30,16 +42,26 @@
 
     </LinearLayout>
 
-    <!-- 🔥 BOTÃO EXCLUIR -->
+    <!-- 🔥 BOTÃO EXCLUIR (PROFISSIONAL) -->
     <Button
         android:id="@+id/btnDelete"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Excluir selecionados"
+        android:layout_height="50dp"
+
+        android:text="Excluir"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+
+        android:backgroundTint="#E53935"
+
         android:layout_below="@id/header"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp" />
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
 
+        android:visibility="gone" />
+
+    <!-- 📋 LISTA -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
@@ -50,7 +72,7 @@
         android:paddingBottom="120dp"
         android:clipToPadding="false" />
 
-    <!-- ✅ BOTÃO + COM ÍCONE CERTO -->
+    <!-- ➕ BOTÃO ADD -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"
@@ -64,7 +86,6 @@
 
         android:contentDescription="Adicionar nota"
         android:src="@drawable/outline_add_24"
-
         android:tint="#FFFFFF"
 
         app:backgroundTint="#4A90E2"
