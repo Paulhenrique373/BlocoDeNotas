@@ -1,35 +1,28 @@
 package com.example.blocodenotas
 
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class AddEditNoteActivity : AppCompatActivity() {
 
     private lateinit var edtTitle: EditText
     private lateinit var edtDescription: EditText
     private lateinit var btnSave: Button
+
+    private lateinit var btnBold: TextView
+    private lateinit var btnItalic: TextView
+    private lateinit var btnUnderline: TextView
+
     private lateinit var db: DatabaseHelper
-
     private var noteId = 0
-
-    private var tituloAntigo = ""
-    private var descricaoAntiga = ""
-
-    private var corSelecionada = "#FFE7C2"
-
-    private val handler = Handler(Looper.getMainLooper())
-    private var runnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,129 +32,117 @@ class AddEditNoteActivity : AppCompatActivity() {
         edtDescription = findViewById(R.id.edtDescription)
         btnSave = findViewById(R.id.btnSave)
 
+        btnBold = findViewById(R.id.btnBold)
+        btnItalic = findViewById(R.id.btnItalic)
+        btnUnderline = findViewById(R.id.btnUnderline)
+
         db = DatabaseHelper(this)
 
+        // 🔥 RECEBER DADOS (EDIÇÃO)
         noteId = intent.getIntExtra("id", 0)
+        edtTitle.setText(intent.getStringExtra("title") ?: "")
+        edtDescription.setText(intent.getStringExtra("description") ?: "")
 
-        if (noteId != 0) {
-            tituloAntigo = intent.getStringExtra("title") ?: ""
-            descricaoAntiga = intent.getStringExtra("description") ?: ""
-            corSelecionada = intent.getStringExtra("cor") ?: "#FFE7C2"
-
-            edtTitle.setText(tituloAntigo)
-            edtDescription.setText(descricaoAntiga)
-
-            btnSave.visibility = View.GONE
-        } else {
-            btnSave.visibility = View.VISIBLE
+        // 🔥 NEGRITO
+        btnBold.setOnClickListener {
+            aplicarEstilo(Typeface.BOLD)
         }
 
-        configurarCores()
-        configurarAutoSave()
+        // 🔥 ITÁLICO
+        btnItalic.setOnClickListener {
+            aplicarEstilo(Typeface.ITALIC)
+        }
 
+        // 🔥 SUBLINHADO
+        btnUnderline.setOnClickListener {
+            aplicarSublinhado()
+        }
+
+        // 🎨 COR (segurar texto)
+        edtDescription.setOnLongClickListener {
+            aplicarCor(Color.RED)
+            true
+        }
+
+        // 💾 SALVAR (CORRIGIDO)
         btnSave.setOnClickListener {
+            val title = edtTitle.text.toString()
+            val desc = edtDescription.text.toString()
 
-            val title = edtTitle.text.toString().trim()
-            val description = edtDescription.text.toString().trim()
-
-            if (title.isEmpty() && description.isEmpty()) {
-                Toast.makeText(this, "Preencha o título ou a anotação para salvar", Toast.LENGTH_SHORT).show()
+            // ✅ NOVA REGRA (CORRIGIDA)
+            if (title.isEmpty() && desc.isEmpty()) {
+                Toast.makeText(this, "Digite algo para salvar", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            salvarNota()
-            Toast.makeText(this, "Anotação salva", Toast.LENGTH_SHORT).show()
+            if (noteId == 0) {
+                db.insertNote(Note(titulo = title, descricao = desc))
+            } else {
+                db.updateNote(Note(id = noteId, titulo = title, descricao = desc))
+            }
+
+            Toast.makeText(this, "Salvo com sucesso!", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        salvarNota()
-    }
+    // 🔥 NEGRITO / ITÁLICO
+    private fun aplicarEstilo(style: Int) {
+        val start = edtDescription.selectionStart
+        val end = edtDescription.selectionEnd
 
-    private fun configurarAutoSave() {
-
-        val textWatcher = object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                salvarComDelay()
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        }
-
-        edtTitle.addTextChangedListener(textWatcher)
-        edtDescription.addTextChangedListener(textWatcher)
-    }
-
-    private fun salvarComDelay() {
-        runnable?.let { handler.removeCallbacks(it) }
-
-        runnable = Runnable {
-            salvarNota()
-        }
-
-        handler.postDelayed(runnable!!, 1000)
-    }
-
-    private fun configurarCores() {
-
-        findViewById<View>(R.id.colorYellow).setOnClickListener {
-            corSelecionada = "#FFE7C2"
-        }
-
-        findViewById<View>(R.id.colorBlue).setOnClickListener {
-            corSelecionada = "#D9F4FF"
-        }
-
-        findViewById<View>(R.id.colorPurple).setOnClickListener {
-            corSelecionada = "#F6D8FF"
-        }
-
-        findViewById<View>(R.id.colorGreen).setOnClickListener {
-            corSelecionada = "#DFFFD8"
-        }
-
-        findViewById<View>(R.id.colorOrange).setOnClickListener {
-            corSelecionada = "#FFF3C7"
-        }
-    }
-
-    // 💾 SALVAR NOTA COM DATA
-    private fun salvarNota() {
-
-        val title = edtTitle.text.toString().trim()
-        val description = edtDescription.text.toString().trim()
-
-        if (title.isEmpty() && description.isEmpty()) return
-        if (title == tituloAntigo && description == descricaoAntiga) return
-
-        // 📅 DATA ATUAL
-        val dataAtual = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
-
-        if (noteId == 0) {
-            db.insertNote(
-                Note(
-                    titulo = title,
-                    descricao = description,
-                    data = dataAtual,
-                    cor = corSelecionada
-                )
+        if (start < end) {
+            val spannable = SpannableStringBuilder(edtDescription.text)
+            spannable.setSpan(
+                StyleSpan(style),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
             )
+            edtDescription.text = spannable
+            edtDescription.setSelection(end)
         } else {
-            db.updateNote(
-                Note(
-                    id = noteId,
-                    titulo = title,
-                    descricao = description,
-                    data = dataAtual,
-                    cor = corSelecionada
-                )
-            )
+            Toast.makeText(this, "Selecione o texto primeiro", Toast.LENGTH_SHORT).show()
         }
+    }
 
-        tituloAntigo = title
-        descricaoAntiga = description
+    // 🔥 SUBLINHADO
+    private fun aplicarSublinhado() {
+        val start = edtDescription.selectionStart
+        val end = edtDescription.selectionEnd
+
+        if (start < end) {
+            val spannable = SpannableStringBuilder(edtDescription.text)
+            spannable.setSpan(
+                UnderlineSpan(),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            edtDescription.text = spannable
+            edtDescription.setSelection(end)
+        } else {
+            Toast.makeText(this, "Selecione o texto primeiro", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // 🎨 COR
+    private fun aplicarCor(cor: Int) {
+        val start = edtDescription.selectionStart
+        val end = edtDescription.selectionEnd
+
+        if (start < end) {
+            val spannable = SpannableStringBuilder(edtDescription.text)
+            spannable.setSpan(
+                ForegroundColorSpan(cor),
+                start,
+                end,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            edtDescription.text = spannable
+            edtDescription.setSelection(end)
+        } else {
+            Toast.makeText(this, "Selecione o texto primeiro", Toast.LENGTH_SHORT).show()
+        }
     }
 }
